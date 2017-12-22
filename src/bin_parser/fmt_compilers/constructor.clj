@@ -1,9 +1,9 @@
-(ns bin-parser.fmt-compilers.parser
+(ns bin-parser.fmt-compilers.constructor
   (:require [bin-parser.format :as fmt]
             [bin-parser.intermediate-language :as il]
             [bin-parser.fmt-compilers.common :refer [field-layout]]))
 
-(def parser
+(def constructor
   (reify fmt/Format
     (init [_ args] {:current-grp [] :prog [] :buf-ix 0})
 
@@ -13,10 +13,9 @@
       (let [{:keys [name n]} args]
         (fn [state]
           (-> state
-              (update :prog conj `(il/reset-reg))
+              (update :prog conj `(il/load-reg :fld ~(conj (:current-grp state) name)))
               (update :prog into (for [[buf-ix n shifts] (field-layout (:buf-ix state) n)]
-                                   `(il/move-buf-reg ~buf-ix ~n ~shifts)))
-              (update :prog conj `(il/store-reg :fld ~(conj (:current-grp state) name)))
+                                   `(il/move-reg-buf ~buf-ix ~n ~shifts)))
               (update :buf-ix #(+ % n))))))
 
     (structure [this flds]

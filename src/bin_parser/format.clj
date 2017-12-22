@@ -5,7 +5,8 @@
   (init [_ args])
   (result [_])
   (bits [_ args])
-  (structure [_ args]))
+  (structure [_ args])
+  (group [_ name flds]))
 
 
 (defn bits [& args]
@@ -13,6 +14,9 @@
 
 (defn structure [& flds]
   (fn [compiler] (structure compiler flds)))
+
+(defn group [name & flds]
+  (fn [compiler] (group compiler name flds)))
 
 (defn compile [compiler format & args]
   (->> ((format compiler) (init compiler args))
