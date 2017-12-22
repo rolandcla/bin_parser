@@ -5,7 +5,7 @@
 
 (def constructor
   (reify fmt/Format
-    (init [_ args] {:current-grp [] :prog [] :buf-ix 0})
+    (init [_ args] {:current-grp [] :prog [] :bit-ix 0})
 
     (result [_] :prog)
 
@@ -14,9 +14,9 @@
         (fn [state]
           (-> state
               (update :prog conj `(il/load-reg :fld ~(conj (:current-grp state) name)))
-              (update :prog into (for [[buf-ix n shifts] (cmn/field-layout (:buf-ix state) n)]
-                                   `(il/move-reg-buf ~buf-ix ~n ~shifts)))
-              (update :buf-ix #(+ % n))))))
+              (update :prog into (for [[buf-ix r-shifts mask l-shifts] (cmn/field-layout (:bit-ix state) n)]
+                                   `(il/move-reg-buf ~buf-ix ~r-shifts ~mask ~l-shifts)))
+              (update :bit-ix #(+ % n))))))
 
     (structure [this flds]
       (cmn/structure this flds))

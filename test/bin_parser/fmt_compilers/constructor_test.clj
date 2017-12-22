@@ -13,8 +13,8 @@
   (testing "Construct 8 bits"
     (is (= (fmt/compile constructor fmt-ex1)
            `[(il/load-reg :fld [:aa])
-             (il/move-reg-buf 0 5 0)
+             (il/move-reg-buf 0 3 31 0)
              (il/load-reg :fld [:bb])
-             (il/move-reg-buf 5 3 0)]))))
+             (il/move-reg-buf 0 0 7 0)]))))
 
 

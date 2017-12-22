@@ -1,7 +1,11 @@
 (ns bin-parser.il-executors.interpreter
-  (:require [bin-parser.intermediate-language :as il]))
+  (:require [bin-parser.intermediate-language :as il]
+            [bin-parser.config :as config]))
 
-(def masks {1 1, 2 3, 3 7, 4 15, 5 31, 6 63, 7 127, 8 255})
+(def pow-of-2
+  (->> (iterate #(*' 2 %) 1)
+       (take config/FIELD-MAX-LEN)
+       vec))
 
 (def interpreter
   (reify il/IL
@@ -13,12 +17,12 @@
     (reset-reg [_]
       (fn [state] (assoc state :reg 0)))
 
-    (move-buf-reg [_ buf-ix n shifts]
+    (move-buf-reg [_ buf-ix r-shifts mask l-shifts]
       (fn [state]
-        (let [v (-> (get-in state [:buf (quot buf-ix 8)])
-                    (bit-shift-right (- 8 n (mod buf-ix 8)))
-                    (bit-and (masks n))
-                    ((fn [x] (*' x (bit-shift-left 1 shifts)))))]
+        (let [v (-> (get-in state [:buf buf-ix])
+                    (bit-shift-right r-shifts)
+                    (bit-and mask)
+                    ((fn [x] (*' x (nth pow-of-2 l-shifts)))))]
           (update state :reg
                   (fn [reg] (+' reg v))))))
 
@@ -28,14 +32,14 @@
     (load-reg [_ {:keys [fld]}]
       (fn [state] (assoc state :reg (get-in (:fields state) fld))))
 
-    (move-reg-buf [_ buf-ix n shifts]
+    (move-reg-buf [_ buf-ix r-shifts mask l-shifts]
       (fn [state]
         (let [b (-> (:reg state)
-                    ((fn [x] (quot x (bit-shift-left 1 shifts))))
-                    (bit-and (masks n))
-                    (bit-shift-left (- 8 n (mod buf-ix 8)))
+                    ((fn [x] (quot x (nth pow-of-2 l-shifts))))
+                    (bit-and mask)
+                    (bit-shift-left r-shifts)
                     )]
-          (update-in state [:buf (quot buf-ix 8)]
+          (update-in state [:buf buf-ix]
                      (fn [v] (bit-or (or v 0) b))))))
 
     (result [_ [action]]

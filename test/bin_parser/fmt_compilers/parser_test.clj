@@ -14,8 +14,8 @@
   (testing "Parse 8 bits"
     (is (= (fmt/compile parser fmt-ex1)
            `[(il/reset-reg)
-             (il/move-buf-reg 0 5 0)
+             (il/move-buf-reg 0 3 31 0)
              (il/store-reg :fld [:aa])
              (il/reset-reg)
-             (il/move-buf-reg 5 3 0)
+             (il/move-buf-reg 0 0 7 0)
              (il/store-reg :fld [:bb])]))))
